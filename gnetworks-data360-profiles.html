@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G.Networks — Data 360 Profile SKU Proposal</title>
+<style>
+/* ── Fonts ─────────────────────────────────────────────────────── */
+@font-face { font-family:'Salesforce Sans'; font-weight:300; font-display:swap; src:url('/Users/jpaine/Downloads/jack-decks-latest/assets/fonts/SalesforceSans-Light.woff2') format('woff2'); }
+@font-face { font-family:'Salesforce Sans'; font-weight:400; font-display:swap; src:url('/Users/jpaine/Downloads/jack-decks-latest/assets/fonts/SalesforceSans-Regular.woff2') format('woff2'); }
+@font-face { font-family:'Salesforce Sans'; font-weight:600; font-display:swap; src:url('/Users/jpaine/Downloads/jack-decks-latest/assets/fonts/SalesforceSans-Semibold.woff2') format('woff2'); }
+@font-face { font-family:'Salesforce Sans'; font-weight:700; font-display:swap; src:url('/Users/jpaine/Downloads/jack-decks-latest/assets/fonts/SalesforceSans-Bold.woff2') format('woff2'); }
+@font-face { font-family:'Avant Garde For Salesforce'; font-weight:600; font-display:swap; src:url('/Users/jpaine/Downloads/jack-decks-latest/assets/fonts/AvantGardeForSalesforceW05-Dm.woff2') format('woff2'); }
+
+/* ── Tokens ─────────────────────────────────────────────────────── */
+:root {
+  --sf-navy:    #001E5B;
+  --sf-blue:    #022AC0;
+  --sf-blue-m:  #066AFE;
+  --sf-blue-l:  #00B3FF;
+  --cloud-80:   #90D0FE;
+  --cloud-95:   #EAF5FE;
+  --grad-evening: linear-gradient(160deg,#001E5B 0%,#022AC0 55%,#066AFE 100%);
+  --teal:       #06A59A;
+  --teal-l:     #04E1CB;
+  --teal-95:    #DEF9F3;
+  --yellow:     #E4A201;
+  --yellow-95:  #FBF3E0;
+  --white:      #FFFFFF;
+  --off-white:  #EAF5FE;
+  --font-d: 'Avant Garde For Salesforce','Salesforce Sans',system-ui,sans-serif;
+  --font-b: 'Salesforce Sans',system-ui,-apple-system,sans-serif;
+}
+
+/* ── Reset ───────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#000}
+body{font-family:var(--font-b);-webkit-font-smoothing:antialiased}
+
+/* ── Deck / Slide ──────────────────────────────────────────────── */
+.deck{position:relative;width:100vw;height:100vh}
+.slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
+  padding:5.5vh 6vw;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.5s cubic-bezier(0.16,1,0.3,1);
+  overflow:hidden;
+}
+.slide.active{opacity:1;pointer-events:all}
+
+/* Backgrounds */
+.bg-dark{background:var(--grad-evening);color:#fff}
+.bg-light{background:linear-gradient(160deg,#EAF5FE 0%,#F6FBFF 100%);color:var(--sf-navy)}
+.bg-navy{background:var(--sf-navy);color:#fff}
+
+/* ── Animation Engine ────────────────────────────────────────────── */
+[data-animate]{
+  opacity:0;transform:translateY(18px);
+  transition:opacity 0.45s cubic-bezier(0.16,1,0.3,1) var(--anim-delay,0ms),
+             transform 0.45s cubic-bezier(0.16,1,0.3,1) var(--anim-delay,0ms);
+}
+[data-animate].anim-in{opacity:1;transform:translateY(0)}
+
+/* ── Cobrand Pill ────────────────────────────────────────────────── */
+.cobrand-pill{
+  position:fixed;top:22px;left:28px;
+  background:rgba(255,255,255,0.96);
+  border-radius:40px;padding:8px 18px 8px 12px;
+  display:flex;align-items:center;gap:10px;
+  z-index:200;box-shadow:0 2px 16px rgba(0,0,0,0.22);
+}
+.cobrand-div{width:1px;height:22px;background:#D0DCE8}
+.cobrand-name{font-family:var(--font-b);font-size:12px;font-weight:700;color:var(--sf-navy);letter-spacing:0.02em}
+
+/* ── Slide Counter ───────────────────────────────────────────────── */
+.slide-counter{
+  position:fixed;top:28px;right:32px;
+  font-family:var(--font-b);font-size:11px;font-weight:600;letter-spacing:0.1em;
+  color:rgba(255,255,255,0.35);z-index:200;
+  transition:color 0.3s;
+}
+.slide-counter.on-light{color:rgba(0,30,91,0.35)}
+
+/* ── Nav Dots ────────────────────────────────────────────────────── */
+.nav-dots{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  display:flex;gap:8px;z-index:200;
+}
+.nav-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:rgba(255,255,255,0.3);border:none;cursor:pointer;padding:0;
+  transition:all 0.25s;
+}
+.nav-dot.active{background:#fff;transform:scale(1.35)}
+.nav-dot.on-light{background:rgba(0,30,91,0.25)}
+.nav-dot.on-light.active{background:var(--sf-blue)}
+
+/* ── Arrow Buttons ───────────────────────────────────────────────── */
+.nav-btn{
+  position:fixed;top:50%;transform:translateY(-50%);
+  width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;
+  background:rgba(255,255,255,0.12);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;z-index:200;
+  transition:background 0.2s;
+}
+.nav-btn:hover{background:rgba(255,255,255,0.22)}
+.nav-btn.prev{left:16px}
+.nav-btn.next{right:16px}
+.nav-btn.on-light{background:rgba(0,30,91,0.1);color:var(--sf-navy)}
+.nav-btn.on-light:hover{background:rgba(0,30,91,0.18)}
+
+/* ── Typography ──────────────────────────────────────────────────── */
+.eyebrow{
+  font-family:var(--font-b);font-size:clamp(9px,0.7vw,11px);font-weight:700;
+  text-transform:uppercase;letter-spacing:0.18em;
+  color:var(--sf-blue-l);margin-bottom:1.4vh;
+}
+.eyebrow.dark{color:var(--sf-blue)}
+h1{
+  font-family:var(--font-d);font-weight:600;
+  font-size:clamp(38px,4.4vw,64px);line-height:1.05;
+  letter-spacing:-0.02em;margin-bottom:2.5vh;
+  color:#fff;
+}
+h1 em{color:var(--sf-blue-l);font-style:normal}
+h2{
+  font-family:var(--font-d);font-weight:600;
+  font-size:clamp(26px,2.8vw,42px);line-height:1.1;
+  letter-spacing:-0.02em;margin-bottom:1.8vh;
+  color:var(--sf-navy);
+}
+h2.on-dark{color:#fff}
+h2 em{color:var(--sf-blue-l);font-style:normal}
+.lead{
+  font-family:var(--font-b);font-weight:300;
+  font-size:clamp(14px,1.15vw,17px);line-height:1.75;
+  color:rgba(255,255,255,0.62);max-width:56ch;margin-bottom:3vh;
+}
+.lead.dark-text{color:rgba(0,30,91,0.65)}
+
+/* ── Chips ───────────────────────────────────────────────────────── */
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:1vh}
+.chip{
+  font-family:var(--font-b);font-size:clamp(10px,0.75vw,12px);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.08em;
+  padding:7px 18px;border-radius:50px;
+  border:1.5px solid rgba(255,255,255,0.35);color:rgba(255,255,255,0.85);
+  background:rgba(255,255,255,0.07);
+  transition:all 0.2s;cursor:default;
+}
+.chip:hover{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.6)}
+.chip.teal{border-color:var(--teal-l);color:var(--teal-l);background:rgba(4,225,203,0.08)}
+
+/* ── White Cards ─────────────────────────────────────────────────── */
+.cards-grid{display:grid;gap:1.6vw;width:100%}
+.cols-2{grid-template-columns:repeat(2,1fr)}
+.cols-3{grid-template-columns:repeat(3,1fr)}
+.cols-4{grid-template-columns:repeat(4,1fr)}
+.card{
+  background:#fff;border-radius:20px;
+  padding:clamp(18px,1.8vw,28px);
+  box-shadow:0 4px 20px rgba(0,30,91,0.09);
+}
+.card-icon{font-size:clamp(22px,1.8vw,28px);margin-bottom:12px}
+.card-eyebrow{
+  font-family:var(--font-b);font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.14em;
+  color:var(--sf-blue);margin-bottom:8px;
+}
+.card-title{
+  font-family:var(--font-b);font-size:clamp(13px,1.05vw,16px);font-weight:700;
+  color:var(--sf-navy);margin-bottom:8px;line-height:1.3;
+}
+.card-body{
+  font-family:var(--font-b);font-size:clamp(11px,0.85vw,13px);font-weight:400;
+  color:#444;line-height:1.65;
+}
+.card-body strong{color:var(--sf-navy)}
+.card-body .highlight{color:var(--teal);font-weight:600}
+
+/* Dark glass card */
+.card-glass{
+  background:rgba(255,255,255,0.07);border-radius:20px;
+  border:1px solid rgba(255,255,255,0.13);
+  padding:clamp(18px,1.8vw,28px);
+}
+.card-glass .card-title{color:#fff}
+.card-glass .card-body{color:rgba(255,255,255,0.65)}
+
+/* Teal accent card */
+.card-teal{
+  background:var(--teal-95);border-radius:20px;
+  padding:clamp(18px,1.8vw,28px);
+  border:1.5px solid rgba(6,165,154,0.2);
+}
+.card-teal .card-title{color:#023434}
+.card-teal .card-body{color:#044040}
+
+/* ── Before/After Swap ───────────────────────────────────────────── */
+.swap-row{display:flex;align-items:stretch;gap:2vw;width:100%;margin-top:0.5vh}
+.swap-box{
+  flex:1;border-radius:20px;padding:clamp(20px,2vw,32px);
+  display:flex;flex-direction:column;gap:14px;
+}
+.swap-box.before{background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.18)}
+.swap-box.after{background:rgba(4,225,203,0.1);border:1.5px solid rgba(4,225,203,0.35)}
+.swap-label{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.16em;
+  margin-bottom:4px;
+}
+.swap-label.before-lbl{color:rgba(255,255,255,0.45)}
+.swap-label.after-lbl{color:var(--teal-l)}
+.swap-item{
+  display:flex;align-items:center;gap:12px;
+  font-size:clamp(12px,0.9vw,14px);font-weight:600;
+  color:rgba(255,255,255,0.85);
+}
+.swap-item .qty{
+  min-width:52px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(12px,0.9vw,14px);font-weight:700;font-family:var(--font-b);
+}
+.qty.flex-qty{background:rgba(255,255,255,0.12);color:#fff}
+.qty.profile-qty{background:var(--teal);color:#fff}
+.qty.flex-small{background:rgba(255,255,255,0.18);color:#fff}
+.arrow-divider{
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(24px,2vw,32px);color:var(--sf-blue-l);
+  flex-shrink:0;align-self:center;
+}
+
+/* ── Meter row ───────────────────────────────────────────────────── */
+.meter-row{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 18px;border-radius:14px;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+  margin-bottom:10px;
+}
+.meter-label{
+  flex:1;font-size:clamp(12px,0.9vw,14px);font-weight:600;color:#fff;
+}
+.meter-label span{font-weight:300;color:rgba(255,255,255,0.55);display:block;font-size:clamp(10px,0.75vw,12px);margin-top:2px}
+.meter-tag{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;
+  padding:5px 13px;border-radius:50px;
+}
+.tag-off{background:rgba(4,225,203,0.15);color:var(--teal-l);border:1px solid rgba(4,225,203,0.3)}
+.tag-on{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.55)}
+
+/* ── Stat Block ──────────────────────────────────────────────────── */
+.stat-block{
+  display:flex;flex-direction:column;align-items:flex-start;
+  background:rgba(255,255,255,0.07);border-radius:20px;
+  border:1px solid rgba(255,255,255,0.13);
+  padding:clamp(18px,1.8vw,26px) clamp(20px,2vw,30px);
+}
+.stat-value{
+  font-family:var(--font-d);font-size:clamp(36px,3.8vw,58px);font-weight:600;
+  color:var(--sf-blue-l);line-height:1;letter-spacing:-0.02em;margin-bottom:6px;
+}
+.stat-label{
+  font-family:var(--font-b);font-size:clamp(11px,0.85vw,13px);font-weight:400;
+  color:rgba(255,255,255,0.55);line-height:1.4;
+}
+
+/* ── Astro ───────────────────────────────────────────────────────── */
+.astro{
+  position:absolute;bottom:-2vh;right:4vw;
+  height:clamp(180px,22vh,280px);
+  pointer-events:none;z-index:10;
+}
+
+/* ── SF Logo fixed ───────────────────────────────────────────────── */
+.sf-logo-fixed{
+  position:fixed;bottom:28px;right:32px;
+  height:26px;z-index:200;opacity:0.55;
+}
+
+/* ── Cover specific ──────────────────────────────────────────────── */
+.cover-content{max-width:62%}
+.cover-meta{
+  font-family:var(--font-b);font-size:clamp(11px,0.85vw,13px);font-weight:400;
+  color:rgba(255,255,255,0.45);margin-top:3vh;letter-spacing:0.02em;
+}
+.cover-meta strong{color:rgba(255,255,255,0.7);font-weight:600}
+
+/* ── Two-column layout ────────────────────────────────────────────── */
+.two-col{display:flex;gap:2.5vw;width:100%;align-items:flex-start}
+.col-left{flex:0 0 42%}
+.col-right{flex:1}
+
+/* ── Full-width layout helpers ───────────────────────────────────── */
+.full-width{width:100%}
+.slide-inner{width:100%;max-width:100%}
+
+/* ── Callout bar ──────────────────────────────────────────────────── */
+.callout-bar{
+  width:100%;border-radius:16px;
+  background:rgba(4,225,203,0.1);
+  border:1.5px solid rgba(4,225,203,0.3);
+  padding:16px 24px;
+  display:flex;align-items:center;gap:16px;
+  margin-top:2vh;
+}
+.callout-bar-text{
+  font-family:var(--font-b);font-size:clamp(12px,0.95vw,15px);
+  font-weight:400;color:rgba(255,255,255,0.75);line-height:1.55;
+}
+.callout-bar-text strong{color:var(--teal-l)}
+
+/* ── Numbered list ────────────────────────────────────────────────── */
+.numbered-list{list-style:none;display:flex;flex-direction:column;gap:12px;width:100%}
+.numbered-list li{
+  display:flex;align-items:flex-start;gap:16px;
+  font-family:var(--font-b);font-size:clamp(12px,0.95vw,15px);
+  font-weight:400;color:rgba(255,255,255,0.75);line-height:1.55;
+}
+.numbered-list li .num{
+  min-width:28px;height:28px;border-radius:50%;
+  background:var(--sf-blue-m);color:#fff;
+  font-weight:700;font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+.numbered-list li strong{color:#fff}
+
+/* ── Price callout ────────────────────────────────────────────────── */
+.price-row{
+  display:flex;gap:2vw;width:100%;margin-top:0.5vh;
+}
+.price-card{
+  flex:1;border-radius:20px;padding:clamp(20px,2vw,32px);
+}
+.price-card.uplift{
+  background:rgba(4,225,203,0.1);border:1.5px solid rgba(4,225,203,0.35);
+}
+.price-card.included{
+  background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.15);
+}
+.price-amount{
+  font-family:var(--font-d);font-size:clamp(32px,3.2vw,48px);font-weight:600;
+  color:var(--teal-l);line-height:1;letter-spacing:-0.02em;margin-bottom:6px;
+}
+.price-amount.neutral{color:rgba(255,255,255,0.5)}
+.price-desc{
+  font-size:clamp(11px,0.85vw,13px);font-weight:400;color:rgba(255,255,255,0.55);
+  line-height:1.55;margin-top:4px;
+}
+.price-title{
+  font-size:clamp(12px,0.9vw,14px);font-weight:700;color:#fff;
+  margin-bottom:8px;text-transform:uppercase;letter-spacing:0.1em;font-size:10px;
+}
+</style>
+</head>
+<body>
+
+<!-- Cobrand Pill -->
+<div class="cobrand-pill">
+  <img src="/Users/jpaine/Downloads/jack-decks-latest/assets/logos/Salesforce-Corporate-Logo-Cloud-RBG.svg" width="26" height="26" alt="Salesforce">
+  <div class="cobrand-div"></div>
+  <span class="cobrand-name">G.Networks</span>
+</div>
+
+<!-- Slide Counter -->
+<div class="slide-counter" id="slideCounter">1 / 7</div>
+
+<!-- Nav buttons -->
+<button class="nav-btn prev" id="prevBtn" aria-label="Previous slide">&#8592;</button>
+<button class="nav-btn next" id="nextBtn" aria-label="Next slide">&#8594;</button>
+
+<!-- Nav dots -->
+<div class="nav-dots" id="navDots"></div>
+
+<!-- SF Logo -->
+<img class="sf-logo-fixed" src="/Users/jpaine/Downloads/jack-decks-latest/assets/logos/Salesforce-Corporate-Logo-Horiz-KO-RGB.svg" alt="Salesforce">
+
+<div class="deck" id="deck">
+
+  <!-- ── SLIDE 1: Cover ────────────────────────────────────────── -->
+  <div class="slide bg-dark active">
+    <div class="cover-content">
+      <div class="eyebrow" data-animate data-anim-delay="0">Proposed Licence Update · July 2026</div>
+      <h1 data-animate data-anim-delay="80">Proposed changes to<br>your Data 360<br><em>licence structure</em></h1>
+      <p class="lead" data-animate data-anim-delay="180">
+        We've worked with Deal Desk on a swap quote that moves 40 of your 50 Flex Credit units to the Data 360 Profile SKU. This sets out what changes, what stays the same, and the reasoning behind the recommendation.
+      </p>
+      <div class="chips" data-animate data-anim-delay="280">
+        <span class="chip">Data 360 Profile SKU</span>
+        <span class="chip teal">202k Unified Profiles</span>
+        <span class="chip">~£5k Annual Uplift</span>
+      </div>
+      <div class="cover-meta" data-animate data-anim-delay="360">
+        Prepared by <strong>Jack Paine</strong>, Marketing Cloud Specialist AE &nbsp;·&nbsp; Salesforce
+      </div>
+    </div>
+    <img class="astro" src="/Users/jpaine/Downloads/jack-decks-latest/assets/characters/char-astro-jumping.png" alt="Astro">
+  </div>
+
+  <!-- ── SLIDE 2: The Problem ──────────────────────────────────── -->
+  <div class="slide bg-dark">
+    <div class="slide-inner">
+      <div class="eyebrow" data-animate data-anim-delay="0">Context</div>
+      <h2 class="on-dark" data-animate data-anim-delay="80">How Flex Credits work today<br>and <em>where the limitations are</em></h2>
+      <p class="lead" data-animate data-anim-delay="160">Under a pure Flex Credit model, every core Data 360 operation draws from the same pool. For teams doing regular data work, this creates a few practical issues worth addressing.</p>
+
+      <div class="cards-grid cols-3" style="margin-top:0" data-animate data-anim-delay="240">
+        <div class="card-glass">
+          <div class="card-eyebrow" style="color:var(--sf-blue-l)">Usage uncertainty</div>
+          <div class="card-title">Credit consumption is hard to predict in advance</div>
+          <div class="card-body" style="color:rgba(255,255,255,0.55)">How many credits a segment refresh or identity resolution run uses depends on data volumes and frequency — both of which change. That makes forward planning difficult.</div>
+        </div>
+        <div class="card-glass">
+          <div class="card-eyebrow" style="color:var(--sf-blue-l)">Email activity triggers unification</div>
+          <div class="card-title">Every email open or click can re-trigger identity resolution</div>
+          <div class="card-body" style="color:rgba(255,255,255,0.55)">When email engagement events flow back into Data 360 in real time, each one can kick off a new unification run. On active campaigns this adds up quickly and is difficult to anticipate.</div>
+        </div>
+        <div class="card-glass">
+          <div class="card-eyebrow" style="color:var(--sf-blue-l)">Core operations are the main cost driver</div>
+          <div class="card-title">90–95% of typical base consumption comes from four meters</div>
+          <div class="card-body" style="color:rgba(255,255,255,0.55)">Salesforce data shows that Prep, Unification, Segmentation and Activation account for the vast majority of Flex Credit usage for standard CDP workflows — before any AI use cases are factored in.</div>
+        </div>
+      </div>
+
+      <div class="callout-bar" data-animate data-anim-delay="380">
+        <div class="callout-bar-text">
+          The Profile SKU is designed specifically to address this: it removes metering from those four operations entirely, leaving Flex Credits available for Agentforce and other AI-driven use cases.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 3: The Swap ─────────────────────────────────────── -->
+  <div class="slide bg-dark">
+    <div class="slide-inner">
+      <div class="eyebrow" data-animate data-anim-delay="0">The Proposal</div>
+      <h2 class="on-dark" data-animate data-anim-delay="80">What we're proposing<br>and <em>what it changes</em></h2>
+      <p class="lead" data-animate data-anim-delay="160">Swap 40 of your 50 Flex Credit units into Data 360 Profiles, giving you 202k unified profiles with core operations unmetered. The remaining 10 units of Flex Credits stay in place to cover Agentforce Marketing.</p>
+
+      <div class="swap-row" data-animate data-anim-delay="240">
+        <div class="swap-box before">
+          <div class="swap-label before-lbl">Current</div>
+          <div class="swap-item">
+            <div class="qty flex-qty">50 ×</div>
+            <span>Flex Credits (100k packs)<br><span style="font-weight:300;font-size:0.85em;color:rgba(255,255,255,0.5)">All core Data 360 operations metered</span></span>
+          </div>
+        </div>
+
+        <div class="arrow-divider">→</div>
+
+        <div class="swap-box after">
+          <div class="swap-label after-lbl">Proposed</div>
+          <div class="swap-item">
+            <div class="qty profile-qty">202k</div>
+            <span>Data 360 Profiles<br><span style="font-weight:300;font-size:0.85em;color:rgba(255,255,255,0.6)">Prep, Unification, Segmentation &amp; Activation unmetered</span></span>
+          </div>
+          <div class="swap-item" style="margin-top:4px">
+            <div class="qty flex-small">10 ×</div>
+            <span>Flex Credits (100k packs) retained<br><span style="font-weight:300;font-size:0.85em;color:rgba(255,255,255,0.5)">Covers Agentforce Marketing use cases</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:2vw;margin-top:2vh" data-animate data-anim-delay="340">
+        <div class="stat-block" style="flex:1">
+          <div class="stat-value">202k</div>
+          <div class="stat-label">Unified customer profiles<br>fully unmetered</div>
+        </div>
+        <div class="stat-block" style="flex:1">
+          <div class="stat-value">4</div>
+          <div class="stat-label">Core meters switched off<br>completely</div>
+        </div>
+        <div class="stat-block" style="flex:1">
+          <div class="stat-value">90–95%</div>
+          <div class="stat-label">Of typical base consumption<br>no longer applies</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 4: What the Profile SKU turns off ───────────────── -->
+  <div class="slide bg-dark">
+    <div class="slide-inner">
+      <div class="eyebrow" data-animate data-anim-delay="0">Profile SKU · Included Operations</div>
+      <h2 class="on-dark" data-animate data-anim-delay="80">What the Profile SKU<br><em>includes at no additional cost</em></h2>
+      <p class="lead" data-animate data-anim-delay="160" style="margin-bottom:2vh">The Profile SKU removes metering from the four operations that make up the majority of standard Data 360 usage. None of these draw from your Flex Credits.</p>
+
+      <div class="full-width" data-animate data-anim-delay="230">
+        <div class="meter-row">
+          <div class="meter-label">
+            Identity Resolution &amp; Unification
+            <span>Stitches every data source into a single deduplicated profile per customer. Runs automatically whenever new data arrives — no credits consumed, no matter how often it fires.</span>
+          </div>
+          <div class="meter-tag tag-off">Unmetered</div>
+        </div>
+        <div class="meter-row">
+          <div class="meter-label">
+            Data Prep &amp; Ingestion
+            <span>Brings in data from CRM, web, app, email engagement, and third-party sources. Cleans and harmonises it. Fully included — batch ingestion is free across every source.</span>
+          </div>
+          <div class="meter-tag tag-off">Unmetered</div>
+        </div>
+        <div class="meter-row">
+          <div class="meter-label">
+            Segmentation
+            <span>Build and refresh audience segments as frequently as your campaigns demand. Real-time and batch both included. Run it ten times a day if you need to.</span>
+          </div>
+          <div class="meter-tag tag-off">Unmetered</div>
+        </div>
+        <div class="meter-row">
+          <div class="meter-label">
+            Activation
+            <span>Push segments to marketing journeys, advertising platforms, and any channel. Every push, every time — no per-activation charge, no throttling.</span>
+          </div>
+          <div class="meter-tag tag-off">Unmetered</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 5: What else is baked in ───────────────────────── -->
+  <div class="slide bg-light">
+    <div class="slide-inner">
+      <div class="eyebrow dark" data-animate data-anim-delay="0">Profile SKU · Further Detail</div>
+      <h2 data-animate data-anim-delay="80">Additional capabilities<br><em>included with the Profile SKU</em></h2>
+      <p class="lead dark-text" data-animate data-anim-delay="160">Beyond the four unmetered operations, the Profile SKU includes several capabilities that previously required separate add-ons or were not available at all.</p>
+
+      <div class="cards-grid cols-2" data-animate data-anim-delay="240">
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <div class="card-eyebrow">Real-time profile access</div>
+          <div class="card-title">Sub-second profile API access is included</div>
+          <div class="card-body">This previously required a separate "Sub-Second Real-Time Profile &amp; Entities" SKU. Under the Profile SKU, sub-second real-time profile access is included — <strong>no additional licence or cost required</strong>.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">∞</div>
+          <div class="card-eyebrow">Identity Resolution rulesets</div>
+          <div class="card-title">No limit on the number of rulesets</div>
+          <div class="card-body">The Profile SKU carries <strong>no cap on Identity Resolution rulesets</strong>. You can build as many match rules as your data setup requires. This restriction was removed across both standard and enterprise tiers in April 2026.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🧩</div>
+          <div class="card-eyebrow">Anonymous profile weighting</div>
+          <div class="card-title">Anonymous profiles count at 4% of a known profile</div>
+          <div class="card-body">Anonymous records — unknown web visitors, unresolved contacts — are now weighted at <strong>0.04 rather than 0.20</strong>. This change, made in 2026, means high-traffic datasets with a large proportion of anonymous records are sized more accurately.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔒</div>
+          <div class="card-eyebrow">Email-triggered re-unification</div>
+          <div class="card-title">Email engagement events do not consume credits</div>
+          <div class="card-body">Under Flex Credits, email opens and clicks flowing back into Data 360 can re-trigger identity resolution runs, adding to credit consumption unexpectedly. <strong>Under the Profile SKU, those runs are unmetered</strong> — email activity does not affect your credit balance.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 6: Agentforce + Flex ────────────────────────────── -->
+  <div class="slide bg-dark">
+    <div class="slide-inner">
+      <div class="eyebrow" data-animate data-anim-delay="0">Retained Flex Credits</div>
+      <h2 class="on-dark" data-animate data-anim-delay="80">How the retained Flex Credits<br><em>cover Agentforce Marketing</em></h2>
+      <p class="lead" data-animate data-anim-delay="160">The 10 remaining units (1M Flex Credits) are allocated to Agentforce Marketing use cases — AI-assisted campaign creation, content generation, and agent actions. Based on typical usage patterns for a small marketing team, this is well within what's needed.</p>
+
+      <div class="two-col" style="margin-top:1vh" data-animate data-anim-delay="240">
+        <div class="col-left">
+          <div class="card-glass" style="height:100%">
+            <div class="card-eyebrow" style="color:var(--sf-blue-l)">What Flex covers</div>
+            <ul class="numbered-list" style="margin-top:12px">
+              <li><div class="num">1</div><div><strong>AI campaign brief generation</strong> — 20 credits per action</div></li>
+              <li><div class="num">2</div><div><strong>Email copy &amp; content creation</strong> — 20 credits per action</div></li>
+              <li><div class="num">3</div><div><strong>Agent-assisted segment creation</strong> — 20 credits per action</div></li>
+              <li><div class="num">4</div><div><strong>Custom Agentforce actions</strong> — 28 credits per action</div></li>
+              <li><div class="num">5</div><div><strong>Data queries &amp; analytics</strong> — 3 credits per 1M rows</div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-right" style="display:flex;flex-direction:column;gap:1.4vh">
+          <div class="stat-block">
+            <div class="stat-value">1M</div>
+            <div class="stat-label">Flex Credits retained for Agentforce</div>
+          </div>
+          <div class="card-glass">
+            <div class="card-eyebrow" style="color:var(--teal-l)">Estimated usage</div>
+            <div class="card-title">~35 AI actions per day across the team uses approximately 21,000 credits per month</div>
+            <div class="card-body" style="color:rgba(255,255,255,0.65)">Over 9 months at that rate, total consumption would be around <strong style="color:var(--teal-l)">189,000 credits</strong> — roughly 19% of the 1M available. There is material headroom for the team to grow usage or add new Agentforce actions without approaching the limit.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 7: Investment + Next Steps ─────────────────────── -->
+  <div class="slide bg-dark">
+    <div class="slide-inner">
+      <div class="eyebrow" data-animate data-anim-delay="0">Cost &amp; Next Steps</div>
+      <h2 class="on-dark" data-animate data-anim-delay="80">Cost summary<br>and <em>what happens next</em></h2>
+      <p class="lead" data-animate data-anim-delay="160">The swap comes out at a small uplift of approximately £5k annually. Below is a summary of what changes financially, what remains unchanged, and the steps to move forward.</p>
+
+      <div class="price-row" data-animate data-anim-delay="240">
+        <div class="price-card uplift">
+          <div class="price-title">Annual uplift</div>
+          <div class="price-amount">~£5k</div>
+          <div class="price-desc">Net uplift to move 40 Flex Credit units to 202k Data 360 Profiles. Worked through Deal Desk — this is the recommended swap configuration.</div>
+        </div>
+        <div class="price-card included">
+          <div class="price-title">What stays the same</div>
+          <div class="price-amount neutral">—</div>
+          <div class="price-desc">No changes to existing contracts or infrastructure. 10 Flex Credit units remain in place. Current journeys, integrations, and data configurations are unaffected.</div>
+        </div>
+        <div class="price-card" style="background:rgba(4,225,203,0.06);border:1.5px solid rgba(4,225,203,0.2)">
+          <div class="price-title">What changes</div>
+          <div class="price-amount" style="font-size:clamp(22px,2.2vw,32px);color:var(--teal-l)">4 meters off</div>
+          <div class="price-desc">Identity Resolution, Data Prep, Segmentation, and Activation across 202k profiles are no longer metered against your Flex Credit balance.</div>
+        </div>
+      </div>
+
+      <div class="cards-grid cols-3" style="margin-top:2vh" data-animate data-anim-delay="340">
+        <div class="card-glass">
+          <div class="card-eyebrow" style="color:var(--sf-blue-l)">Step 1</div>
+          <div class="card-title" style="color:#fff">Confirm your profile count</div>
+          <div class="card-body" style="color:rgba(255,255,255,0.55)">Share your current unified profile count and an estimate of where you expect to be in 12 months. This confirms the 202k sizing is appropriate before we finalise the quote.</div>
+        </div>
+        <div class="card-glass">
+          <div class="card-eyebrow" style="color:var(--sf-blue-l)">Step 2</div>
+          <div class="card-title" style="color:#fff">Review and approve the swap quote</div>
+          <div class="card-body" style="color:rgba(255,255,255,0.55)">The quote has been reviewed by Deal Desk as a straightforward swap. Once approved, the Profile SKU is added to your org — there is no migration or re-implementation involved.</div>
+        </div>
+        <div class="card-glass">
+          <div class="card-eyebrow" style="color:var(--sf-blue-l)">Step 3</div>
+          <div class="card-title" style="color:#fff">Profile SKU active from day one</div>
+          <div class="card-body" style="color:rgba(255,255,255,0.55)">Once in place, Prep, Unification, Segmentation and Activation are no longer metered. The change takes effect immediately — no further action required from your team.</div>
+        </div>
+      </div>
+    </div>
+    <img class="astro" src="/Users/jpaine/Downloads/jack-decks-latest/assets/characters/char-agent-astro-2.png" alt="Agent Astro" style="height:clamp(160px,20vh,240px)">
+  </div>
+
+</div><!-- /deck -->
+
+<script>
+/* ── Slide management ────────────────────────────────────────────── */
+const slides = Array.from(document.querySelectorAll('.slide'));
+const counter = document.getElementById('slideCounter');
+const dotsContainer = document.getElementById('navDots');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+let current = 0;
+
+const LIGHT_SLIDES = [4]; // 0-indexed: slide 5 (index 4) is bg-light
+
+function isLight(idx) { return LIGHT_SLIDES.includes(idx); }
+
+function updateChrome(idx) {
+  const light = isLight(idx);
+  counter.textContent = (idx + 1) + ' / ' + slides.length;
+  counter.className = 'slide-counter' + (light ? ' on-light' : '');
+  prevBtn.className = 'nav-btn prev' + (light ? ' on-light' : '');
+  nextBtn.className = 'nav-btn next' + (light ? ' on-light' : '');
+  document.querySelectorAll('.nav-dot').forEach((d, i) => {
+    d.className = 'nav-dot' + (light ? ' on-light' : '') + (i === idx ? ' active' : '');
+  });
+}
+
+function goTo(idx) {
+  if (idx < 0 || idx >= slides.length) return;
+  slides[current].classList.remove('active');
+  current = idx;
+  slides[current].classList.add('active');
+  updateChrome(current);
+}
+
+// Build dots
+slides.forEach((_, i) => {
+  const d = document.createElement('button');
+  d.className = 'nav-dot' + (i === 0 ? ' active' : '');
+  d.setAttribute('aria-label', 'Go to slide ' + (i+1));
+  d.addEventListener('click', () => goTo(i));
+  dotsContainer.appendChild(d);
+});
+
+prevBtn.addEventListener('click', () => goTo(current - 1));
+nextBtn.addEventListener('click', () => goTo(current + 1));
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+});
+
+// Touch/swipe
+let tx = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+document.addEventListener('touchend', e => {
+  const dx = tx - e.changedTouches[0].clientX;
+  if (Math.abs(dx) > 50) goTo(current + (dx > 0 ? 1 : -1));
+}, {passive:true});
+
+/* ── Animation Engine ────────────────────────────────────────────── */
+(() => {
+  const STAGGER = 60;
+  function animateSlide(slide) {
+    const els = slide.querySelectorAll('[data-animate]');
+    els.forEach((el, i) => {
+      el.classList.remove('anim-in');
+      const delay = parseInt(el.dataset.animDelay ?? (i * STAGGER), 10);
+      el.style.setProperty('--anim-delay', delay + 'ms');
+      requestAnimationFrame(() => { requestAnimationFrame(() => el.classList.add('anim-in')); });
+    });
+  }
+  function resetSlide(slide) {
+    slide.querySelectorAll('[data-animate]').forEach(el => {
+      el.classList.remove('anim-in');
+      el.style.removeProperty('--anim-delay');
+    });
+  }
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(({ target, oldValue }) => {
+      const wasActive = (oldValue || '').split(' ').includes('active');
+      const isActive  = target.classList.contains('active');
+      if (!wasActive && isActive) animateSlide(target);
+      if (wasActive && !isActive) resetSlide(target);
+    });
+  });
+  slides.forEach(slide => {
+    observer.observe(slide, { attributes: true, attributeOldValue: true, attributeFilter: ['class'] });
+    if (slide.classList.contains('active')) setTimeout(() => animateSlide(slide), 50);
+  });
+})();
+
+updateChrome(0);
+</script>
+</body>
+</html>
